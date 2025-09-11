@@ -6,59 +6,133 @@ class Racer extends Robot implements Runnable {
     private Thread t;
     private AtomicInteger shared;
     private int number_beepers = 0;
-
-    // public Racer(int Street, int Avenue, Direction direction, int beeps) {
-    //     super(Street, Avenue, direction, beeps);
-    //     World.setupThread(this); 
-    //     t = new Thread(this);
-    // }
+    private int x,y;
 
     public Racer(int Street, int Avenue, Direction direction, int beeps, Color color, AtomicInteger ref) {
         super(Street, Avenue, direction, beeps, color);
+        this.y = Street;
+        this.x = Avenue;
         this.shared = ref;
         World.setupThread(this);
         t = new Thread(this);
     }
     
-    public synchronized void race() {
-
-        
-        // 1. Mover 4 pasos
-        for (int i = 0; i < 4; i++) {
-            move();
-        }
-
-        // 2. Recoger 5 beepers
-        for (int i = 0; i < 5; i++) {
-            // System.out.println(shared);
-            int newValue = shared.decrementAndGet();
-            if(newValue>=0){
-                pickBeeper();
-                number_beepers++;
-            }
-
-        }
-    
-
-        // 3. Girar a la izquierda
+    private synchronized void turnRight() {
         turnLeft();
-
-        // 4. Mover 2 pasos
-        for (int i = 0; i < 2; i++) {
-            
-            move();
-        }
-        
-        // 5. Poner 5 beepers
-        for (int i = 0; i < number_beepers; i++) {
-            putBeeper();
-        }
-        
-        // 6. Mover 1 paso
+        turnLeft();
+        turnLeft();
+    }
+    public synchronized void largoAzul(){
+        for (int i = 0; i < 4; i++) move();
+        turnLeft();
+        for (int i = 0; i < 10; i++) move();
+        turnLeft();
+        for (int i = 0; i < 3; i++) move();
+        turnRight();
+        for (int i = 0; i < 3; i++) move();
+        turnRight();
+        for (int i = 0; i < 8; i++) move();
+        turnRight();
+        for (int i = 0; i < 4; i++) move();
+        turnRight();
+        for (int i = 0; i < 3; i++) move();
+        turnLeft();
+        for (int i = 0; i < 5; i++) move();
+        turnLeft();
+        for (int i = 0; i < 7; i++) move();
+        turnLeft();
+        for (int i = 0; i < 5; i++) move();
+        turnRight();
+        for (int i = 0; i < 10; i++) move();
+        turnLeft();
+        for (int i = 0; i < 6; i++) move();
+        turnLeft();
         move();
-        
-        // 7. Apagar
+        turnLeft();
+        move();
+        turnRight();
+        for (int i = 0; i < 6; i++) move();
+        turnLeft();
+        move();
+        turnLeft();
+        for (int i = 0; i < 6; i++) move();
+        turnRight();
+
+        for (int i = 0; i < 2; i++) move();
+        turnRight();
+        move();
+        turnRight();
+        move();
+        turnLeft();
+        for (int i = 0; i < 5; i++) move();
+        turnLeft();
+        move();
+        largoMorado();
+
+
+
+
+
+    }
+
+
+
+    public synchronized void largoMorado(){
+        move();
+        turnRight();
+        for (int i = 0; i < 3; i++) move();
+        turnRight();
+        for (int i = 0; i < 8; i++) move();
+        turnLeft();
+        for (int i = 0; i < 2; i++) move();
+        turnLeft();
+        for (int i = 0; i < 4; i++) move();
+        turnRight();
+        for (int i = 0; i < 17; i++) move();
+        turnLeft();
+        for (int i = 0; i < 5; i++) move();
+        turnLeft();
+        for (int i = 0; i < 9; i++) move();
+        turnRight();
+        for (int i = 0; i < 8; i++) move();
+        turnRight();
+        for (int i = 0; i < 2; i++) move();
+        turnRight();
+        // inicia recorrido zona verda
+        for (int i = 0; i < 2; i++) move();
+        turnLeft();
+        for (int i = 0; i < 7; i++) move();
+        turnLeft();
+        move();
+        turnLeft();
+        for (int i = 0; i < 6; i++) move();
+        turnRight();
+        move();
+        turnRight();
+        for (int i = 0; i < 6; i++) move();
+        turnLeft();
+        move();
+        turnLeft();
+        for (int i = 0; i < 5; i++) move();
+        move();
+
+
+
+
+
+        largoAzul();
+
         turnOff();
+    }
+
+    public synchronized void race() {
+        if(y == 12){
+            this.largoMorado();
+            return;
+
+        }
+        this.largoAzul();
+
     }
 
     public void run() {
@@ -66,6 +140,6 @@ class Racer extends Robot implements Runnable {
     }
 
     public void start() {
-        t.start(); // arranca el hilo
+        t.start(); 
     }
 }

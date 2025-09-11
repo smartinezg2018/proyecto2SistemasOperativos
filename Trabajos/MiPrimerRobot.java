@@ -9,12 +9,14 @@ public class MiPrimerRobot implements Directions {
 
         World.readWorld("mundos/parte2.kwld"); 
         World.setVisible(true); 
-        // World.setSpeed(7);
-        RacerAzul first = new RacerAzul(1, 7, East, 0,ref);
-        // Racer second = new Racer(12, 30, South, 0, Color.BLUE,ref);
+        World.setDelay(3);
+
+for(int i =0; i<10;i++)        {        Racer second = new Racer(1, 7, East, 0, Color.BLUE,ref); // largoAzul
+        Racer first = new Racer(12, 23, South, 0, Color.RED,ref); // largoMorado
+
 
         first.start();
-        // second.start();
+        second.start();}
 
     } 
 }
