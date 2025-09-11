@@ -38,6 +38,7 @@ class Racer extends Robot implements Runnable {
             }
 
         }
+    
 
         // 3. Girar a la izquierda
         turnLeft();
