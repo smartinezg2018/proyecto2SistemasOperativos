@@ -4,17 +4,33 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 class Racer extends Robot implements Runnable {
     private Thread t;
-    private AtomicInteger shared;
-    private int number_beepers = 0;
-    private int x,y;
+    private int [] coor = new int[2];
+    public static Mapa map;
 
-    public Racer(int Street, int Avenue, Direction direction, int beeps, Color color, AtomicInteger ref) {
-        super(Street, Avenue, direction, beeps, color);
-        this.y = Street;
-        this.x = Avenue;
-        this.shared = ref;
+    public Racer(int Street, int Avenue, Direction direction, Mapa map) {
+        super(Street, Avenue, direction, 0, Color.BLUE);
+        this.map = map;
+        coor[0] = Street;
+        coor[1] = Avenue;
         World.setupThread(this);
         t = new Thread(this);
+        if(map.reviewLocation(coor))map.createRobot(coor);
+    }
+    public int[] getCurrentDirection() {
+        if (facingNorth()) return new int[]{1, 0};
+        else if (facingEast())  return new int[]{0, 1};
+        else if (facingSouth()) return new int[]{-1, 0};
+        else  return new int[]{0, -1};
+        
+    }
+
+    public void move(){
+        int[] mov = getCurrentDirection();
+        map.move(coor,mov);
+        map.print();
+        coor[0]+=mov[0];
+        coor[1]+=mov[1];
+        super.move();
     }
     
     private synchronized void turnRight() {
@@ -126,7 +142,7 @@ class Racer extends Robot implements Runnable {
     }
 
     public synchronized void race() {
-        if(y == 12){
+        if(coor[0] == 12){
             this.largoMorado();
             return;
 

@@ -11,12 +11,17 @@ public class MiPrimerRobot implements Directions {
         World.setVisible(true); 
         World.setDelay(3);
 
-for(int i =0; i<10;i++)        {        Racer second = new Racer(1, 7, East, 0, Color.BLUE,ref); // largoAzul
-        Racer first = new Racer(12, 23, South, 0, Color.RED,ref); // largoMorado
+        Mapa map = new Mapa();
+
+
+        Racer second = new Racer(1, 7, East, map); // largoAzul
+        
+        Racer first = new Racer(12, 23, South, map); // largoMorado
+
 
 
         first.start();
-        second.start();}
+        second.start();
+    }
+} 
 
-    } 
-}
