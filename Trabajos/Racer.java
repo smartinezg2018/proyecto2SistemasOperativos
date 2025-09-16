@@ -1,5 +1,6 @@
 import kareltherobot.*;
 import java.awt.Color;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicInteger;
 
 class Racer extends Robot implements Runnable {
@@ -16,6 +17,8 @@ class Racer extends Robot implements Runnable {
         t = new Thread(this);
         if(map.reviewLocation(coor))map.createRobot(coor);
     }
+
+
     public int[] getCurrentDirection() {
         if (facingNorth()) return new int[]{1, 0};
         else if (facingEast())  return new int[]{0, 1};
@@ -23,6 +26,7 @@ class Racer extends Robot implements Runnable {
         else  return new int[]{0, -1};
         
     }
+
 
     public void move(){
         int[] mov = getCurrentDirection();
@@ -33,11 +37,14 @@ class Racer extends Robot implements Runnable {
         super.move();
     }
     
+
     private synchronized void turnRight() {
         turnLeft();
         turnLeft();
         turnLeft();
     }
+
+    
     public synchronized void largoAzul(){
         for (int i = 0; i < 4; i++) move();
         turnLeft();
@@ -73,7 +80,6 @@ class Racer extends Robot implements Runnable {
         turnLeft();
         for (int i = 0; i < 6; i++) move();
         turnRight();
-
         for (int i = 0; i < 2; i++) move();
         turnRight();
         move();

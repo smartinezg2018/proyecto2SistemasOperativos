@@ -1,8 +1,10 @@
 import java.util.Arrays;
+import java.util.concurrent.Semaphore;
 
 public class Mapa {
     
     int[][] map = new int[20][31]; 
+    private static final Semaphore semaphore = new Semaphore(1);
     
 
     public Mapa(){
@@ -10,12 +12,24 @@ public class Mapa {
             Arrays.fill(map[i], 1);
         }
     }
+    
     public void print(){
-        for(int y = 0; y<19;y++){
-            for(int x = 0; x<30;x++) System.out.print(map[y][x]);
-            System.out.println();
+            
+        try {
+            semaphore.acquire(); 
+            for(int y = 0; y<19;y++){
+                for(int x = 0; x<30;x++) System.out.print(map[y][x]);
+                System.out.println();
+            }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } finally {
+            semaphore.release(); 
         }
+
+
     }
+
     public void createRobot(int[] coor){
         map[coor[0]][coor[1]]-=1;
     }
@@ -25,6 +39,7 @@ public class Mapa {
     }
     
     public void move(int[] coor ,int[] mov){
+        // print();
         map[coor[0]][coor[1]]+=1;
         map[coor[0]+mov[0]][coor[1]+mov[1]]-=1;
     }
