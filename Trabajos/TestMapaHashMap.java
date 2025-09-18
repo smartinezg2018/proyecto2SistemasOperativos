@@ -12,26 +12,28 @@ public class TestMapaHashMap {
         // Probar crear robot
         System.out.println("\n2. Creando robot en posición (5, 10):");
         int[] coor1 = {5, 10};
-        map.createRobot(coor1);
+        boolean created = map.createRobot(coor1);
+        System.out.println("Robot creado exitosamente: " + created);
         System.out.println("Después de crear robot:");
         map.print();
         
-        // Probar reviewLocation
-        System.out.println("\n3. Revisando ubicación (5, 10) - debería ser true:");
-        boolean canPlace = map.reviewLocation(coor1);
-        System.out.println("¿Puede colocar robot? " + canPlace);
-        
-        // Probar reviewLocation en posición ocupada
-        System.out.println("\n4. Revisando ubicación (5, 10) otra vez - debería ser false:");
-        boolean canPlaceAgain = map.reviewLocation(coor1);
-        System.out.println("¿Puede colocar robot otra vez? " + canPlaceAgain);
+        // Probar crear robot en celda ocupada (debería fallar)
+        System.out.println("\n3. Intentando crear otro robot en (5, 10) - debería fallar:");
+        boolean canPlaceAgain = map.createRobot(coor1);
+        System.out.println("¿Pudo crear otro robot? " + !canPlaceAgain);
         
         // Probar movimiento
-        System.out.println("\n5. Moviendo robot de (5, 10) a (6, 10):");
+        System.out.println("\n4. Moviendo robot de (5, 10) a (6, 10):");
         int[] mov = {1, 0}; // Mover hacia el sur
-        map.move(coor1, mov);
+        boolean moved = map.tryMove(coor1, mov);
+        System.out.println("Movimiento exitoso: " + moved);
         System.out.println("Después del movimiento:");
         map.print();
+        
+        // Verificar que la celda original está libre creando un nuevo robot
+        System.out.println("\n5. Verificando que la celda original (5, 10) está libre:");
+        boolean originalCellFree = map.createRobot(coor1);
+        System.out.println("¿Pudo crear un robot en la celda original? " + originalCellFree);
         
         // Verificar estado del HashMap
         System.out.println("\n6. Estado interno del HashMap:");

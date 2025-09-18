@@ -8,7 +8,7 @@ public class MiPrimerRobotHashMap implements Directions {
 
         World.readWorld("mundos/parte2.kwld"); 
         World.setVisible(true); 
-        World.setDelay(17);
+        World.setDelay(45);
 
         // Usar la nueva implementación con HashMap
         MapaHashMap map = new MapaHashMap();

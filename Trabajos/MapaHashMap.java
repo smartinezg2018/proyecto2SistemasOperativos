@@ -1,20 +1,22 @@
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
 
 public class MapaHashMap {
     
-    private Map<String, Integer> map = new HashMap<>();
+    // Usamos ConcurrentHashMap para ser thread-safe, especialmente para lecturas como print()
+    private Map<String, Integer> map = new ConcurrentHashMap<>();
+    // Mapa para almacenar un semáforo por cada celda, permitiendo bloqueos específicos (fine-grained locking)
+    private final Map<String, Semaphore> cellLocks = new ConcurrentHashMap<>();
+
     private static final int DEFAULT_VALUE = 1;
     private static final int MAP_WIDTH = 31;
     private static final int MAP_HEIGHT = 20;
-    private static final Semaphore semaphore = new Semaphore(1);
-    
 
     private String getKey(int y, int x) {
         return y + "," + x;
     }
-    
+
     private int getValue(int y, int x) {
         return map.getOrDefault(getKey(y, x), DEFAULT_VALUE);
     }
@@ -32,41 +34,82 @@ public class MapaHashMap {
     }
     
     public void print() {
-        try {
-            semaphore.acquire();
-            for(int y = 0; y < MAP_HEIGHT; y++) {
-                for(int x = 0; x < MAP_WIDTH; x++) {
-                    System.out.print(getValue(y, x));
-                }
-                System.out.println();
+        // Gracias a ConcurrentHashMap, no necesitamos un bloqueo global para imprimir.
+        // La impresión puede mostrar un estado intermedio, pero no lanzará una excepción.
+        for(int y = 0; y < MAP_HEIGHT; y++) {
+            for(int x = 0; x < MAP_WIDTH; x++) {
+                System.out.print(getValue(y, x));
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } finally {
-            semaphore.release();
+            System.out.println();
         }
     }
 
-    public void createRobot(int[] coor) {
-        int currentValue = getValue(coor[0], coor[1]);
-        setValue(coor[0], coor[1], currentValue - 1);
+    /**
+     * Intenta crear un robot en una celda. Es una operación atómica y segura para hilos.
+     * El robot que llama a este método adquiere el bloqueo de la celda si tiene éxito.
+     * @param coor Coordenadas [y, x] donde crear el robot.
+     * @return true si el robot fue creado y el bloqueo adquirido, false en caso contrario.
+     */
+    public boolean createRobot(int[] coor) {
+        String key = getKey(coor[0], coor[1]);
+        Semaphore lock = cellLocks.computeIfAbsent(key, k -> new Semaphore(1));
+
+        if (lock.tryAcquire()) {
+            // Se obtuvo el bloqueo de la celda, ahora se comprueba la capacidad.
+            if (getValue(coor[0], coor[1]) - 1 >= 0) {
+                setValue(coor[0], coor[1], getValue(coor[0], coor[1]) - 1);
+                // Éxito. El hilo del robot ahora "posee" el bloqueo de esta celda.
+                return true;
+            } else {
+                // No hay capacidad, se libera el bloqueo y se falla.
+                lock.release();
+                return false;
+            }
+        }
+        // No se pudo adquirir el bloqueo, la celda está ocupada por otro robot.
+        return false;
     }
 
-    public boolean reviewLocation(int[] coor) {
-        return getValue(coor[0], coor[1]) - 1 >= 0;
-    }
-    
-    public void move(int[] coor, int[] mov) {
-        int currentValue = getValue(coor[0], coor[1]);
-        setValue(coor[0], coor[1], currentValue + 1);
-        
-        int newY = coor[0] + mov[0];
-        int newX = coor[1] + mov[1];
-        int newValue = getValue(newY, newX);
-        setValue(newY, newX, newValue - 1);
+    /**
+     * Intenta mover un robot de una celda a otra de forma atómica.
+     * @param fromCoor Coordenadas de origen.
+     * @param mov      Vector de movimiento [dy, dx].
+     * @return true si el movimiento fue exitoso, false si la celda de destino está ocupada o no tiene capacidad.
+     */
+    public boolean tryMove(int[] fromCoor, int[] mov) {
+        int toY = fromCoor[0] + mov[0];
+        int toX = fromCoor[1] + mov[1];
+
+        String fromKey = getKey(fromCoor[0], fromCoor[1]);
+        String toKey = getKey(toY, toX);
+
+        Semaphore fromLock = cellLocks.get(fromKey);
+        Semaphore toLock = cellLocks.computeIfAbsent(toKey, k -> new Semaphore(1));
+
+        if (toLock.tryAcquire()) {
+            // Se obtuvo el bloqueo de la celda de destino.
+            try {
+                if (getValue(toY, toX) - 1 >= 0) {
+                    // La celda de destino tiene capacidad. Se realiza el movimiento.
+                    setValue(fromCoor[0], fromCoor[1], getValue(fromCoor[0], fromCoor[1]) + 1);
+                    setValue(toY, toX, getValue(toY, toX) - 1);
+
+                    // Se libera el bloqueo de la celda de origen.
+                    fromLock.release();
+                    return true; // Movimiento exitoso.
+                }
+            } finally {
+                // Si el movimiento no fue exitoso (p.ej. no hay capacidad), se libera el bloqueo de destino.
+                if (!toLock.tryAcquire(0)) { // Si el bloqueo sigue en nuestro poder
+                    toLock.release();
+                }
+            }
+        }
+        return false; // No se pudo adquirir el bloqueo de destino o no había capacidad.
     }
     
     public void printHashMapState() {
+        // Gracias a ConcurrentHashMap, esta operación es segura.
         System.out.println("HashMap contents:");
         for (Map.Entry<String, Integer> entry : map.entrySet()) {
             System.out.println("Key: " + entry.getKey() + ", Value: " + entry.getValue());
