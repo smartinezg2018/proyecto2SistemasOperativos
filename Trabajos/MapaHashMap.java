@@ -10,12 +10,11 @@ public class MapaHashMap {
     private static final int MAP_HEIGHT = 20;
     private static final Semaphore semaphore = new Semaphore(1);
     
-    // Clave para coordenadas (y,x) para mantener compatibilidad con la matriz original
+
     private String getKey(int y, int x) {
         return y + "," + x;
     }
     
-    // Obtener valor con valor por defecto
     private int getValue(int y, int x) {
         return map.getOrDefault(getKey(y, x), DEFAULT_VALUE);
     }
@@ -30,7 +29,6 @@ public class MapaHashMap {
     }
     
     public MapaHashMap() {
-        // No necesitamos inicializar nada, los valores por defecto se manejan en getValue()
     }
     
     public void print() {
@@ -59,18 +57,15 @@ public class MapaHashMap {
     }
     
     public void move(int[] coor, int[] mov) {
-        // Incrementar posición actual
         int currentValue = getValue(coor[0], coor[1]);
         setValue(coor[0], coor[1], currentValue + 1);
         
-        // Decrementar nueva posición
         int newY = coor[0] + mov[0];
         int newX = coor[1] + mov[1];
         int newValue = getValue(newY, newX);
         setValue(newY, newX, newValue - 1);
     }
     
-    // Método adicional para verificar el estado interno del HashMap
     public void printHashMapState() {
         System.out.println("HashMap contents:");
         for (Map.Entry<String, Integer> entry : map.entrySet()) {
