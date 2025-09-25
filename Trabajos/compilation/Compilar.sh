@@ -1,1 +1,2 @@
-javac -d . -cp ".:KarelJRobot.jar" MiPrimerRobot.java  
+
+javac -cp ".:KarelJRobot.jar" Mapa.java Racer.java MiPrimerRobot.java TestMapa.java TestCompleto.java

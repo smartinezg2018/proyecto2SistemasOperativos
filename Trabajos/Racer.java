@@ -1,12 +1,12 @@
 import kareltherobot.*;
 import java.awt.Color;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicInteger;
 
 class Racer extends Robot implements Runnable {
     private Thread t;
-    private int[] coor = new int[2];
-    public static Mapa map;
+    private int [] coor = new int[2];
+    // El mapa debe ser una variable de instancia, no estática, para que cada robot
+    // se refiera al mapa con el que fue creado.
+    private final Mapa map;
 
     public Racer(int Street, int Avenue, Direction direction, Mapa map) {
         super(Street, Avenue, direction, 0, Color.BLUE);
@@ -15,24 +15,46 @@ class Racer extends Robot implements Runnable {
         coor[1] = Avenue;
         World.setupThread(this);
         t = new Thread(this);
-        if (map.reviewLocation(coor)) map.createRobot(coor);
+        
+        // El robot intenta ocupar su posición inicial. Si está ocupada, espera y reintenta.
+        while (!map.createRobot(coor)) {
+            try {
+                Thread.sleep(50); // Espera 50ms antes de volver a intentar
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
     }
+
 
     public int[] getCurrentDirection() {
         if (facingNorth()) return new int[]{1, 0};
-        else if (facingEast()) return new int[]{0, 1};
+        else if (facingEast())  return new int[]{0, 1};
         else if (facingSouth()) return new int[]{-1, 0};
-        else return new int[]{0, -1};
+        else  return new int[]{0, -1};
+        
     }
 
-    public void move() {
-        int[] mov = getCurrentDirection();
-        map.move(coor, mov);
-        map.print();
+
+    public void move(){
+        int[] mov = getCurrentDirection(); 
+
+        // El robot intenta moverse. Si la celda de destino está ocupada, espera y reintenta.
+        while (!map.tryMove(coor, mov)) {
+            try {
+                Thread.sleep(20);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return;
+            }
+        }
+
+        // Si llegamos aquí, el movimiento fue exitoso en la lógica del mapa.
         coor[0] += mov[0];
         coor[1] += mov[1];
-        super.move();
+        super.move(); // Ahora se mueve el robot visual.
     }
+    
 
     private synchronized void turnRight() {
         turnLeft();
@@ -203,6 +225,6 @@ class Racer extends Robot implements Runnable {
     }
 
     public void start() {
-        t.start();
+        t.start(); 
     }
 }

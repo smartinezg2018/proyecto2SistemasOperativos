@@ -1,7 +1,7 @@
 import kareltherobot.*; 
 import java.awt.Color; 
 
-public class TestCompletoHashMap implements Directions { 
+public class TestCompleto implements Directions { 
     public static void main(String[] args) { 
 
         World.readWorld("mundos/parte2.kwld"); 
@@ -9,7 +9,7 @@ public class TestCompletoHashMap implements Directions {
         World.setDelay(50);
 
         // Usar la nueva implementación con HashMap
-        MapaHashMap map = new MapaHashMap();
+        Mapa map = new Mapa();
 
         System.out.println("=== Iniciando simulación con HashMap ===");
         System.out.println("Mapa inicial:");
@@ -19,8 +19,8 @@ public class TestCompletoHashMap implements Directions {
         map.printHashMapState();
 
         // Crear solo 2 robots para prueba
-        RacerHashMap second = new RacerHashMap(1, 7, East, map); // largoAzul
-        RacerHashMap first = new RacerHashMap(12, 23, South, map); // largoMorado
+        Racer second = new Racer(1, 7, East, map); // largoAzul
+        Racer first = new Racer(12, 23, South, map); // largoMorado
         
         System.out.println("\nEstado después de crear robots:");
         map.printHashMapState();

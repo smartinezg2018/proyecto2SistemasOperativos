@@ -1,9 +1,9 @@
-public class TestMapaHashMap {
+public class TestMapa {
     public static void main(String[] args) {
         System.out.println("=== Prueba de MapaHashMap ===");
         
         // Crear instancia del mapa
-        MapaHashMap map = new MapaHashMap();
+        Mapa map = new Mapa();
         
         // Probar impresión inicial
         System.out.println("\n1. Impresión inicial (debería mostrar todos 1s):");

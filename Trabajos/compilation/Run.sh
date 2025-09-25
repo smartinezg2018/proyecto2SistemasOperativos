@@ -1,1 +1,1 @@
-java -cp ".:KarelJRobot.jar" MiPrimerRobot.java
+java -cp ".:KarelJRobot.jar" MiPrimerRobot

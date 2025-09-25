@@ -8,10 +8,17 @@ public class MiPrimerRobot implements Directions {
 
         World.readWorld("mundos/parte2.kwld"); 
         World.setVisible(true); 
-        World.setDelay(17);
+        World.setDelay(45);
 
+        // Usar la nueva implementación con HashMap
         Mapa map = new Mapa();
 
+        System.out.println("=== Iniciando simulación con HashMap ===");
+        System.out.println("Mapa inicial:");
+        map.print();
+        
+        System.out.println("\nEstado inicial del HashMap:");
+        map.printHashMapState();
 
         for(int i = 0; i<20;i++){
             Racer second = new Racer(1, 7, East, map); // largoAzul
@@ -22,4 +29,3 @@ public class MiPrimerRobot implements Directions {
 
     }
 } 
-
