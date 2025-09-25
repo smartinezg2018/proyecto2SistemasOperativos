@@ -40,6 +40,7 @@ class Racer extends Robot implements Runnable {
         int[] mov = getCurrentDirection(); 
 
         // El robot intenta moverse. Si la celda de destino está ocupada, espera y reintenta.
+
         while (!map.tryMove(coor, mov)) {
             try {
                 Thread.sleep(20);
@@ -52,6 +53,7 @@ class Racer extends Robot implements Runnable {
         // Si llegamos aquí, el movimiento fue exitoso en la lógica del mapa.
         coor[0] += mov[0];
         coor[1] += mov[1];
+        
         super.move(); // Ahora se mueve el robot visual.
     }
     

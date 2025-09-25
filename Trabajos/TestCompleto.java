@@ -13,17 +13,17 @@ public class TestCompleto implements Directions {
 
         System.out.println("=== Iniciando simulación con HashMap ===");
         System.out.println("Mapa inicial:");
-        map.print();
+        // map.print();
         
         System.out.println("\nEstado inicial del HashMap:");
-        map.printHashMapState();
+        // map.printHashMapState();
 
         // Crear solo 2 robots para prueba
         Racer second = new Racer(1, 7, East, map); // largoAzul
         Racer first = new Racer(12, 23, South, map); // largoMorado
         
         System.out.println("\nEstado después de crear robots:");
-        map.printHashMapState();
+        // map.printHashMapState();
         
         first.start();
         second.start();
