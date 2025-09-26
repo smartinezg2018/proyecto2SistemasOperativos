@@ -184,13 +184,13 @@ class Racer extends Robot implements Runnable {
     }
     
     public synchronized void rapidoAzul() { // Robot expected at 1,7
-        try {
-            for (int i = 0; i < 4; i++) {
-                pickBeeper();
-            }
-        } catch (Exception e) {
-            return; 
+        // Pedir permiso al mapa para tomar 4 beepers de la estación azul
+        if (!map.tryTakeBeepers("azul", 4)) {
+            System.out.println("Robot en zona azul terminando: No hay más beepers.");
+            return; // Termina el trabajo si no hay beepers
         }
+        // Si se obtuvo permiso, recoger los beepers físicamente
+        for (int i = 0; i < 4; i++) pickBeeper();
 
         if(map.inicioLlenoBajo()){ largoAzul();return;}
         dir = "r";
@@ -239,13 +239,13 @@ class Racer extends Robot implements Runnable {
     }
 
     public synchronized void rapidoVerde() {
-        try {
-            for (int i = 0; i < 4; i++) {
-                pickBeeper();
-            }
-        } catch (Exception e) {
-            return; 
+        // Pedir permiso al mapa para tomar 4 beepers de la estación verde
+        if (!map.tryTakeBeepers("verde", 4)) {
+            System.out.println("Robot en zona verde terminando: No hay más beepers.");
+            return; // Termina el trabajo si no hay beepers
         }
+        // Si se obtuvo permiso, recoger los beepers físicamente
+        for (int i = 0; i < 4; i++) pickBeeper();
 
         if(map.inicioLlenoArriba()) largoMorado();
         dir = "l";

@@ -1,6 +1,7 @@
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.Timer;
 
 
@@ -8,6 +9,8 @@ import java.util.Timer;
 public class Mapa {
     private final Map<String, Semaphore> cellLocks = new ConcurrentHashMap<>();
 
+    private final AtomicInteger beepersAzul = new AtomicInteger(500);
+    private final AtomicInteger beepersVerde = new AtomicInteger(500);
 
     // private static final int DEFAULT_VALUE = 1;
     private static final int MAP_WIDTH = 31;
@@ -59,6 +62,26 @@ public class Mapa {
     return false;
     }
     
+    /**
+     * Intenta tomar un número de beepers de una estación de forma atómica.
+     * @param station "azul" o "verde"
+     * @param amount Cantidad a tomar
+     * @return true si se pudieron tomar los beepers, false si no hay suficientes.
+     */
+    public synchronized boolean tryTakeBeepers(String station, int amount) {
+        AtomicInteger beeperStock = station.equals("azul") ? beepersAzul : beepersVerde;
+
+        // Bucle para asegurar la operación atómica de "verificar y tomar"
+        while (true) {
+            int currentBeepers = beeperStock.get();
+            if (currentBeepers < amount) {
+                return false; // No hay suficientes beepers
+            }
+            if (beeperStock.compareAndSet(currentBeepers, currentBeepers - amount)) {
+                return true; // Se tomaron los beepers exitosamente
+            }
+        }
+    }
 
     public synchronized boolean inicioLlenoBajo(){
         int ans = 4;
@@ -81,4 +104,3 @@ public class Mapa {
         return ans==4;
     }
 }
-
