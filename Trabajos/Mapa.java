@@ -12,7 +12,6 @@ public class Mapa {
     private final AtomicInteger beepersAzul = new AtomicInteger(500);
     private final AtomicInteger beepersVerde = new AtomicInteger(500);
 
-    // private static final int DEFAULT_VALUE = 1;
     private static final int MAP_WIDTH = 31;
     private static final int MAP_HEIGHT = 20;
 
@@ -77,12 +76,7 @@ public class Mapa {
     }
 
     
-    /**
-     * Intenta tomar un número de beepers de una estación de forma atómica.
-     * @param station "azul" o "verde"
-     * @param amount Cantidad a tomar
-     * @return true si se pudieron tomar los beepers, false si no hay suficientes.
-     */
+
     public synchronized boolean tryTakeBeepers(String station, int amount) {
         AtomicInteger beeperStock = station.equals("azul") ? beepersAzul : beepersVerde;
 

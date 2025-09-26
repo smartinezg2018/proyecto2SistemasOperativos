@@ -13,7 +13,6 @@ class Racer extends Robot implements Runnable {
     private static final Object bridge3Lock = new Object();
 
     private static final Semaphore permisorightCorto = new Semaphore(4);
-    private static final Semaphore permisoleftCorto = new Semaphore(4);
 
 
     public Racer(int Street, int Avenue, Direction direction, Mapa map) {
@@ -185,11 +184,9 @@ class Racer extends Robot implements Runnable {
         turnLeft();
         for (int i = 0; i < 6; i++) move(); // Ends at 1,7
         right();
-        // for(int i = 0; i<4;i++)pickBeeper();
     }
 
     public synchronized void largoRight() {
-        // for (int i = 0; i < 4; i++) move();
         turnLeft();
         for (int i = 0; i < 10; i++) move();
         turnLeft();
@@ -219,9 +216,7 @@ class Racer extends Robot implements Runnable {
 
     public synchronized void rapidoRight() {
         dir = "r";
-        for (int i = 0; i < 4; i++) move(); // enter fast lane
-        
-        
+        for (int i = 0; i < 4; i++) move(); // enter fast lane   
         moveBridge1();
         for (int i = 0; i < 4; i++) move(); 
         moveBridge2();
@@ -242,12 +237,6 @@ class Racer extends Robot implements Runnable {
         if (map.tryTakeBeepers("azul", 4)) {
             for (int i = 0; i < 4; i++) pickBeeper();
         }
-        // if (!map.tryTakeBeepers("azul", 4)) {
-        //     System.out.println("Robot en zona azul terminando: No hay más beepers.");
-        //     return; 
-        // }
-
-        // for (int i = 0; i < 4; i++) pickBeeper();
         for (int i = 0; i < 4; i++) move(); 
 
         if(permisorightCorto.tryAcquire()){
@@ -293,7 +282,6 @@ class Racer extends Robot implements Runnable {
         turnLeft();
         for (int i = 0; i < 5; i++) move(); 
         move();
-        permisoleftCorto.release();
         
         moveBridge3();
         turnLeft();
