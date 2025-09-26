@@ -10,7 +10,7 @@ public class MiPrimerRobot implements Directions {
 
         World.readWorld("mundos/parte2.kwld"); 
         World.setVisible(true); 
-        World.setDelay(17);
+        World.setDelay(5);
 
         Mapa map = new Mapa();
 

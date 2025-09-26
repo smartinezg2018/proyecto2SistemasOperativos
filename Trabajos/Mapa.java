@@ -45,22 +45,37 @@ public class Mapa {
         return lock != null && lock.tryAcquire(); // occupy cell
     }
 
+    public boolean nextCellFree(int[] fromCoor, int[] mov){
+        int toY = fromCoor[0] + mov[0];
+        int toX = fromCoor[1] + mov[1];
+        Semaphore toLock = cellLocks.get(getKey(toY, toX));
+
+        if(toLock.availablePermits()-1<0) return false;
+        return true;
+
+
+    }
 
     public boolean tryMove(int[] fromCoor, int[] mov) {
-    int toY = fromCoor[0] + mov[0];
-    int toX = fromCoor[1] + mov[1];
+        int toY = fromCoor[0] + mov[0];
+        int toX = fromCoor[1] + mov[1];
 
-    Semaphore fromLock = cellLocks.get(getKey(fromCoor[0], fromCoor[1]));
-    Semaphore toLock = cellLocks.get(getKey(toY, toX));
+        Semaphore fromLock = cellLocks.get(getKey(fromCoor[0], fromCoor[1]));
+        Semaphore toLock = cellLocks.get(getKey(toY, toX));
 
-    if (toLock != null && toLock.tryAcquire()) {
-        // if(getKey(fromCoor[0], fromCoor[1]).equals("1,9")) return true;
-
-        fromLock.release();
-        return true;
+        if (toLock != null && toLock.tryAcquire()) {
+            try {
+                fromLock.release();
+                return true;
+            } catch (Exception e) {
+                // If anything goes wrong, free the new cell so it’s not stuck
+                toLock.release();
+                throw e;
+            }
+        }
+        return false;
     }
-    return false;
-    }
+
     
     /**
      * Intenta tomar un número de beepers de una estación de forma atómica.
@@ -83,24 +98,5 @@ public class Mapa {
         }
     }
 
-    public synchronized boolean inicioLlenoBajo(){
-        int ans = 4;
 
-        for(int x = 12;x<16;x++){
-            String pos = getKey(1,x);
-            ans-=cellLocks.get(pos).availablePermits(); 
-        }
-        
-        return ans==4;
-    }
-    public synchronized boolean inicioLlenoArriba(){
-        int ans = 4;
-  
-        for(int x = 25;x<=28;x++){
-            String pos = getKey(10,x);
-            ans-=cellLocks.get(pos).availablePermits(); 
-        }
-        
-        return ans==4;
-    }
 }

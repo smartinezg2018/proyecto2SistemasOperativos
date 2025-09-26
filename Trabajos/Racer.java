@@ -1,5 +1,6 @@
 import kareltherobot.*;
 import java.awt.Color;
+import java.util.concurrent.Semaphore;
 
 class Racer extends Robot implements Runnable {
     private Thread t;
@@ -10,6 +11,10 @@ class Racer extends Robot implements Runnable {
     private static final Object bridge1Lock = new Object();
     private static final Object bridge2Lock = new Object();
     private static final Object bridge3Lock = new Object();
+
+    private static final Semaphore permisorightCorto = new Semaphore(4);
+    private static final Semaphore permisoleftCorto = new Semaphore(4);
+
 
     public Racer(int Street, int Avenue, Direction direction, Mapa map) {
         super(Street, Avenue, direction, 0, Color.BLUE);
@@ -29,12 +34,22 @@ class Racer extends Robot implements Runnable {
         }
     }
 
+
+
     public int[] getCurrentDirection() {
         if (facingNorth()) return new int[]{1, 0};
         else if (facingEast())  return new int[]{0, 1};
         else if (facingSouth()) return new int[]{-1, 0};
         else  return new int[]{0, -1};
     }
+
+
+    private synchronized void turnRight() {
+        turnLeft();
+        turnLeft();
+        turnLeft();
+    }
+
 
     public synchronized void move(){
         int[] mov = getCurrentDirection(); 
@@ -48,17 +63,30 @@ class Racer extends Robot implements Runnable {
             }
         }
 
-  
         coor[0] += mov[0];
         coor[1] += mov[1];
         
         super.move(); 
     }
+    
+    
+    public synchronized boolean nextCellFree(){
+        int[] mov = getCurrentDirection(); 
+
+        if(!map.nextCellFree(coor, mov)) {
+            return false;
+        }
+        return true;
+
+    }
+
 
     public void moveBridge1() {
         synchronized (bridge1Lock) {
             if ("r".equals(dir)) {
-                for (int i = 0; i < 6; i++) move(); 
+                move();
+                permisorightCorto.release();
+                for (int i = 0; i < 5; i++) move(); 
             } else {
                 move();
                 turnRight();
@@ -68,6 +96,7 @@ class Racer extends Robot implements Runnable {
             }
         }
     }
+
 
     public void moveBridge2() {
         synchronized (bridge2Lock) {
@@ -83,6 +112,7 @@ class Racer extends Robot implements Runnable {
         }
     }
 
+
     public void moveBridge3() {
         synchronized (bridge3Lock) {
             if ("r".equals(dir)) {
@@ -97,14 +127,13 @@ class Racer extends Robot implements Runnable {
         }
     }
 
-    private synchronized void turnRight() {
-        turnLeft();
-        turnLeft();
-        turnLeft();
-    }
 
     public synchronized void zonaVerde() { // Robot expected at 12,30
-        for(int i = 0; i<4;i++)putBeeper();
+        for(int i = 0; i<4;i++){
+            if(!anyBeepersInBeeperBag())continue;
+            putBeeper();
+            
+        }
 
         for (int i = 0; i < 4; i++) move();
         turnLeft();
@@ -127,14 +156,18 @@ class Racer extends Robot implements Runnable {
         for (int i = 0; i < 5; i++) move();
         turnLeft();
         move(); // Ends at 12,23
-        
-       
 
-        rapidoVerde();
+        left();
+
     }
 
     public synchronized void zonaAzul() { // Robot expected at 2,8
-        for(int i = 0; i<4;i++)putBeeper();
+        for(int i = 0; i<4;i++){
+            if(!anyBeepersInBeeperBag())continue;
+            putBeeper();
+            
+        }
+
         turnRight();
         for (int i = 0; i < 2; i++) move();
         turnLeft();
@@ -151,11 +184,12 @@ class Racer extends Robot implements Runnable {
         move();
         turnLeft();
         for (int i = 0; i < 6; i++) move(); // Ends at 1,7
-        for(int i = 0; i<4;i++)pickBeeper();
+        right();
+        // for(int i = 0; i<4;i++)pickBeeper();
     }
 
-    public synchronized void largoAzul() {
-        for (int i = 0; i < 4; i++) move();
+    public synchronized void largoRight() {
+        // for (int i = 0; i < 4; i++) move();
         turnLeft();
         for (int i = 0; i < 10; i++) move();
         turnLeft();
@@ -180,23 +214,14 @@ class Racer extends Robot implements Runnable {
         for (int i = 0; i < 2; i++) move();
         zonaVerde();
         
-        largoMorado();
+        largoLeft();
     }
-    
-    public synchronized void rapidoAzul() { // Robot expected at 1,7
-        // Pedir permiso al mapa para tomar 4 beepers de la estación azul
-        if (!map.tryTakeBeepers("azul", 4)) {
-            System.out.println("Robot en zona azul terminando: No hay más beepers.");
-            return; // Termina el trabajo si no hay beepers
-        }
-        // Si se obtuvo permiso, recoger los beepers físicamente
-        for (int i = 0; i < 4; i++) pickBeeper();
 
-        if(map.inicioLlenoBajo()){ largoAzul();return;}
+    public synchronized void rapidoRight() {
         dir = "r";
-        for (int i = 0; i < 4; i++) move(); // exit
         for (int i = 0; i < 4; i++) move(); // enter fast lane
-
+        
+        
         moveBridge1();
         for (int i = 0; i < 4; i++) move(); 
         moveBridge2();
@@ -209,11 +234,33 @@ class Racer extends Robot implements Runnable {
 
         zonaVerde();
 
+ 
+
+    }
+    
+    public synchronized void right() { 
+        if (map.tryTakeBeepers("azul", 4)) {
+            for (int i = 0; i < 4; i++) pickBeeper();
+        }
+        // if (!map.tryTakeBeepers("azul", 4)) {
+        //     System.out.println("Robot en zona azul terminando: No hay más beepers.");
+        //     return; 
+        // }
+
+        // for (int i = 0; i < 4; i++) pickBeeper();
+        for (int i = 0; i < 4; i++) move(); 
+
+        if(permisorightCorto.tryAcquire()){
+            rapidoRight();
+        }
+        else largoRight();
+
+        
   
     }
 
-    public synchronized void largoMorado() { // Robot expected at 12,23
-        move();
+    public synchronized void largoLeft() { // Robot expected at 12,23
+
         turnRight();
         for (int i = 0; i < 3; i++) move();
         turnRight();
@@ -234,25 +281,20 @@ class Racer extends Robot implements Runnable {
         for (int i = 0; i < 2; i++) move(); // ends at 2,8
 
         zonaAzul();
-        largoAzul();
+        largoRight();
   
     }
 
-    public synchronized void rapidoVerde() {
-        // Pedir permiso al mapa para tomar 4 beepers de la estación verde
-        if (!map.tryTakeBeepers("verde", 4)) {
-            System.out.println("Robot en zona verde terminando: No hay más beepers.");
-            return; // Termina el trabajo si no hay beepers
-        }
-        // Si se obtuvo permiso, recoger los beepers físicamente
-        for (int i = 0; i < 4; i++) pickBeeper();
 
-        if(map.inicioLlenoArriba()) largoMorado();
+    public synchronized void rapidoLeft(){
         dir = "l";
-        for (int i = 0; i < 2; i++) move(); 
-        turnLeft();
-        for (int i = 0; i < 6; i++) move(); 
+        move();
 
+        turnLeft();
+        for (int i = 0; i < 5; i++) move(); 
+        move();
+        permisoleftCorto.release();
+        
         moveBridge3();
         turnLeft();
         for (int i = 0; i < 3; i++) move();
@@ -267,15 +309,33 @@ class Racer extends Robot implements Runnable {
         for (int i = 0; i < 8; i++) move();
 
         zonaAzul();
-        rapidoAzul();
+        right();
+        
+    }
+
+    public synchronized void left() {
+        if (map.tryTakeBeepers("verde", 4)) {
+            for (int i = 0; i < 4; i++) pickBeeper();
+        }
+
+        
+        move(); 
+
+       if (nextCellFree()) {
+           rapidoLeft();
+        }
+        else{
+            largoLeft();
+        }
+        
     }
 
     public synchronized void race() {
         if (coor[0] == 12) {
-            this.rapidoVerde();
+            this.left();
             return;
         }
-        this.rapidoAzul();
+        this.right();
     }
 
     public void run() {
