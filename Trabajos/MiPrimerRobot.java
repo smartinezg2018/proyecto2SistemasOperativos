@@ -2,7 +2,6 @@ import kareltherobot.*;
 import java.awt.Color; 
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.Semaphore;
-// import java.util.time;
 
 public class MiPrimerRobot implements Directions { 
    
@@ -20,7 +19,7 @@ public class MiPrimerRobot implements Directions {
         System.out.println("\nEstado inicial del HashMap:");
 
 
-        for(int i = 0; i<30;i++){
+        for(int i = 0; i<28;i++){
             Racer second = new Racer(1, 7, East, map); // largoAzul
             second.start();
             // Thread.sleep(2000);
