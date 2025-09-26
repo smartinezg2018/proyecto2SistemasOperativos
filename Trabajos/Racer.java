@@ -4,9 +4,12 @@ import java.awt.Color;
 class Racer extends Robot implements Runnable {
     private Thread t;
     private int [] coor = new int[2];
-    // El mapa debe ser una variable de instancia, no estática, para que cada robot
-    // se refiera al mapa con el que fue creado.
     private final Mapa map;
+    String dir;
+
+    private static final Object bridge1Lock = new Object();
+    private static final Object bridge2Lock = new Object();
+    private static final Object bridge3Lock = new Object();
 
     public Racer(int Street, int Avenue, Direction direction, Mapa map) {
         super(Street, Avenue, direction, 0, Color.BLUE);
@@ -16,30 +19,25 @@ class Racer extends Robot implements Runnable {
         World.setupThread(this);
         t = new Thread(this);
         
-        // El robot intenta ocupar su posición inicial. Si está ocupada, espera y reintenta.
+
         while (!map.createRobot(coor)) {
             try {
-                Thread.sleep(50); // Espera 50ms antes de volver a intentar
+                Thread.sleep(50);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
             }
         }
     }
 
-
     public int[] getCurrentDirection() {
         if (facingNorth()) return new int[]{1, 0};
         else if (facingEast())  return new int[]{0, 1};
         else if (facingSouth()) return new int[]{-1, 0};
         else  return new int[]{0, -1};
-        
     }
 
-
-    public void move(){
+    public synchronized void move(){
         int[] mov = getCurrentDirection(); 
-
-        // El robot intenta moverse. Si la celda de destino está ocupada, espera y reintenta.
 
         while (!map.tryMove(coor, mov)) {
             try {
@@ -50,13 +48,54 @@ class Racer extends Robot implements Runnable {
             }
         }
 
-        // Si llegamos aquí, el movimiento fue exitoso en la lógica del mapa.
+  
         coor[0] += mov[0];
         coor[1] += mov[1];
         
-        super.move(); // Ahora se mueve el robot visual.
+        super.move(); 
     }
-    
+
+    public void moveBridge1() {
+        synchronized (bridge1Lock) {
+            if ("r".equals(dir)) {
+                for (int i = 0; i < 6; i++) move(); 
+            } else {
+                move();
+                turnRight();
+                for (int i = 0; i < 5; i++) move();
+                turnRight();
+                move();
+            }
+        }
+    }
+
+    public void moveBridge2() {
+        synchronized (bridge2Lock) {
+            if ("r".equals(dir)) {
+                for (int i = 0; i < 5; i++) move(); 
+            } else {
+                move();
+                turnRight();
+                for (int i = 0; i < 3; i++) move();
+                turnRight();
+                move();
+            }
+        }
+    }
+
+    public void moveBridge3() {
+        synchronized (bridge3Lock) {
+            if ("r".equals(dir)) {
+                for (int i = 0; i < 7; i++) move();
+            } else {
+                move();
+                turnRight();
+                for (int i = 0; i < 5; i++) move();
+                turnRight();
+                move();
+            }
+        }
+    }
 
     private synchronized void turnRight() {
         turnLeft();
@@ -64,7 +103,9 @@ class Racer extends Robot implements Runnable {
         turnLeft();
     }
 
-    public synchronized void zonaVerde() { // Se espera que el robot esté en 12, 30
+    public synchronized void zonaVerde() { // Robot expected at 12,30
+        for(int i = 0; i<4;i++)putBeeper();
+
         for (int i = 0; i < 4; i++) move();
         turnLeft();
         move();
@@ -85,10 +126,15 @@ class Racer extends Robot implements Runnable {
         turnLeft();
         for (int i = 0; i < 5; i++) move();
         turnLeft();
-        move(); // Acaba en 12, 23
+        move(); // Ends at 12,23
+        
+       
+
+        rapidoVerde();
     }
 
-    public synchronized void zonaAzul() { // Se espera que el robot esté en 2, 8
+    public synchronized void zonaAzul() { // Robot expected at 2,8
+        for(int i = 0; i<4;i++)putBeeper();
         turnRight();
         for (int i = 0; i < 2; i++) move();
         turnLeft();
@@ -104,7 +150,8 @@ class Racer extends Robot implements Runnable {
         turnLeft();
         move();
         turnLeft();
-        for (int i = 0; i < 6; i++) move(); // Acaba en 1,7
+        for (int i = 0; i < 6; i++) move(); // Ends at 1,7
+        for(int i = 0; i<4;i++)pickBeeper();
     }
 
     public synchronized void largoAzul() {
@@ -132,30 +179,40 @@ class Racer extends Robot implements Runnable {
         turnLeft();
         for (int i = 0; i < 2; i++) move();
         zonaVerde();
+        
         largoMorado();
     }
+    
+    public synchronized void rapidoAzul() { // Robot expected at 1,7
+        try {
+            for (int i = 0; i < 4; i++) {
+                pickBeeper();
+            }
+        } catch (Exception e) {
+            return; 
+        }
 
-    public synchronized void rapidoAzul() { // Se espera que el robot esté en 1, 7
-        for (int i = 0; i < 4; i++) move(); // Sale
-        // Condición para saber por cuál camino sigue
-        for (int i = 0; i < 4; i++) move(); // Entra al camino rápido
-        // Condición para ver si el robot puede seguir avanzando
-        for (int i = 0; i < 6; i++) move(); // Atraviesa el pare y siga
-        for (int i = 0; i < 4; i++) move(); // Entra en la bahía
-        // Condición para ver si el robot puede seguir avanzando
-        for (int i = 0; i < 5; i++) move(); // Llega a la esquina
+        if(map.inicioLlenoBajo()){ largoAzul();return;}
+        dir = "r";
+        for (int i = 0; i < 4; i++) move(); // exit
+        for (int i = 0; i < 4; i++) move(); // enter fast lane
+
+        moveBridge1();
+        for (int i = 0; i < 4; i++) move(); 
+        moveBridge2();
+
         turnLeft();
         for (int i = 0; i < 3; i++) move();
-        // Condición para ver si el robot puede seguir avanzando
-        for (int i = 0; i < 8; i++) move(); // Llega a zona verde
 
-        // inicia recorrido zona verde
+        moveBridge3();
+        move();
+
         zonaVerde();
 
-        turnOff();
+  
     }
 
-    public synchronized void largoMorado() { // Se espera que el robot esté en 12, 23
+    public synchronized void largoMorado() { // Robot expected at 12,23
         move();
         turnRight();
         for (int i = 0; i < 3; i++) move();
@@ -174,44 +231,43 @@ class Racer extends Robot implements Runnable {
         turnRight();
         for (int i = 0; i < 8; i++) move();
         turnRight();
-        for (int i = 0; i < 2; i++) move(); // termina en 2,8
+        for (int i = 0; i < 2; i++) move(); // ends at 2,8
 
-        // inicia recorrido zona azul
         zonaAzul();
-
         largoAzul();
-
-        turnOff();
+  
     }
 
     public synchronized void rapidoVerde() {
-        // Condición para saber por cuál camino sigue
-        for (int i = 0; i < 2; i++) move(); // Entra camino rápido
+        try {
+            for (int i = 0; i < 4; i++) {
+                pickBeeper();
+            }
+        } catch (Exception e) {
+            return; 
+        }
+
+        if(map.inicioLlenoArriba()) largoMorado();
+        dir = "l";
+        for (int i = 0; i < 2; i++) move(); 
         turnLeft();
-        for (int i = 0; i < 7; i++) move(); // Va hasta 30
-        turnRight();
-        for (int i = 0; i < 5; i++) move(); // Al frente de bahía 1
-        turnRight();
-        move();
+        for (int i = 0; i < 6; i++) move(); 
+
+        moveBridge3();
         turnLeft();
-        for (int i = 0; i < 4; i++) move(); // Entra segundo en pare y siga
-        turnRight();
-        for (int i = 0; i < 3; i++) move(); // Al frente de bahía 2
-        turnRight();
-        move();
+        for (int i = 0; i < 3; i++) move();
+
+        moveBridge2();
         turnLeft();
         for (int i = 0; i < 5; i++) move();
         turnLeft();
-        move();
-        turnRight();
-        for (int i = 0; i < 5; i++) move(); // Al frente de bahía 3
-        turnRight();
-        move();
-        turnLeft();
-        for (int i = 0; i < 8; i++) move(); // Llega a zona azul
-        zonaAzul();
 
-        turnOff();
+        moveBridge1();
+        turnLeft();
+        for (int i = 0; i < 8; i++) move();
+
+        zonaAzul();
+        rapidoAzul();
     }
 
     public synchronized void race() {

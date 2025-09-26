@@ -34,8 +34,6 @@ public class Mapa {
                 cellLocks.put(pos, s); 
             }
         }
-        // pos = "1,9";
-        // cellLocks.put(pos, new Semaphore(4));
     }
 
 
@@ -62,4 +60,25 @@ public class Mapa {
     }
     
 
+    public synchronized boolean inicioLlenoBajo(){
+        int ans = 4;
+
+        for(int x = 12;x<16;x++){
+            String pos = getKey(1,x);
+            ans-=cellLocks.get(pos).availablePermits(); 
+        }
+        
+        return ans==4;
+    }
+    public synchronized boolean inicioLlenoArriba(){
+        int ans = 4;
+  
+        for(int x = 25;x<=28;x++){
+            String pos = getKey(10,x);
+            ans-=cellLocks.get(pos).availablePermits(); 
+        }
+        
+        return ans==4;
+    }
 }
+
